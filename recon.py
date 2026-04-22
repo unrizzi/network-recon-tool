@@ -1,5 +1,6 @@
-import socket, json
+import socket, json, threading
 from datetime import datetime
+from queue import Queue
 
 class NetworkRecon:
 
@@ -35,8 +36,33 @@ class NetworkRecon:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(3)
                 s.connect((ip,port))
-
                 banner = s.recv(1024).decode(errors='ignore').strip()
                 return banner if banner else "No banner retrieved."
         except Exception:
             return None
+        
+    def scan_port_range(self,port_list,thread_count=50):
+        ip = self.resolve_target()
+        if not ip:
+            print("Target IP could not be resolved.")
+            return
+        threads = []
+        def worker(port):
+            try:
+                if self.check_port(ip, port):
+                    banner = self.get_banner(ip, port)
+                    print(f"Found open port: {port} | Service: {banner}")
+                    self.results["open_ports"].append({"port": port, "service": banner})
+            except Exception as e:
+                print(f"Error scanning port {port}: {e}")
+        for port in port_list:
+            t = threading.Thread(target=worker,args=(port,))
+            threads.append(t)
+            t.start()
+            if len(threads) >= thread_count:
+                for t in threads:
+                    t.join()
+                threads = []
+        for t in threads:
+            t.join()
+        print(f"Scan finished. Found {len(self.results['open_ports'])} open ports.")
