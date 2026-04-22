@@ -29,3 +29,14 @@ class NetworkRecon:
         except Exception as e:
             print(f"Unexpected error on port {port}: {e}")
             return False
+        
+    def get_banner(self, ip, port):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(3)
+                s.connect((ip,port))
+
+                banner = s.recv(1024).decode(errors='ignore').strip()
+                return banner if banner else "No banner retrieved."
+        except Exception:
+            return None
