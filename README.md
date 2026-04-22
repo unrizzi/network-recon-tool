@@ -28,11 +28,8 @@ from recon import NetworkRecon
 # Initialize scanner
 scanner = NetworkRecon("scanme.nmap.org")
 
-# Define ports to scan
-ports = [21, 22, 80, 443]
-
-# Execute multithreaded scan
-scanner.scan_port_range(ports)
+# Run scan using default ports
+scanner.scan_port_range()
 
 # Export results
 scanner.save_results()

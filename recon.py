@@ -4,6 +4,8 @@ from queue import Queue
 
 class NetworkRecon:
 
+    DEFAULT_PORTS = [21, 22, 23, 25, 53, 80, 110, 443, 3306, 8080]
+
     def __init__(self,target):
         self.target = target
         self.results = {
@@ -41,11 +43,12 @@ class NetworkRecon:
         except Exception:
             return None
         
-    def scan_port_range(self,port_list,thread_count=50):
+    def scan_port_range(self,port_list=None,thread_count=50):
         ip = self.resolve_target()
         if not ip:
             print("Target IP could not be resolved.")
             return
+        ports_to_scan = port_list if port_list is not None else self.DEFAULT_PORTS
         threads = []
         def worker(port):
             try:
@@ -55,7 +58,7 @@ class NetworkRecon:
                     self.results["open_ports"].append({"port": port, "service": banner})
             except Exception as e:
                 print(f"Error scanning port {port}: {e}")
-        for port in port_list:
+        for port in ports_to_scan:
             t = threading.Thread(target=worker,args=(port,))
             threads.append(t)
             t.start()
